@@ -1,7 +1,27 @@
 const { createInterface } = require("node:readline/promises");
 const { stdin, stdout } = require("node:process");
 
-// Supported operations: addition (+), subtraction (-), multiplication (*), and division (/).
+function modulo(a, b) {
+  if (b === 0) {
+    throw new Error("Cannot take modulo by zero.");
+  }
+
+  return a % b;
+}
+
+function power(base, exponent) {
+  return base ** exponent;
+}
+
+function squareRoot(n) {
+  if (n < 0) {
+    throw new Error("Cannot calculate the square root of a negative number.");
+  }
+
+  return Math.sqrt(n);
+}
+
+// Supported CLI operations: +, -, *, /, %, ^, and sqrt.
 const operations = {
   "+": (left, right) => left + right,
   "-": (left, right) => left - right,
@@ -13,11 +33,13 @@ const operations = {
 
     return left / right;
   },
+  "%": modulo,
+  "^": power,
 };
 
 function calculate(operation, left, right) {
   if (!Object.hasOwn(operations, operation)) {
-    throw new Error("Choose one of the supported operations: +, -, *, /.");
+    throw new Error("Choose one of the supported operations: +, -, *, /, %, ^.");
   }
 
   if (!Number.isFinite(left) || !Number.isFinite(right)) {
@@ -55,12 +77,22 @@ async function main() {
   }
 
   try {
-    console.log("CLI Calculator (+, -, *, /)");
-    const operation = (await ask("Operation (+, -, *, /): ")).trim();
-    const left = parseOperand(await ask("First number: "), "First number");
-    const right = parseOperand(await ask("Second number: "), "Second number");
+    console.log("CLI Calculator (+, -, *, /, %, ^, sqrt)");
+    const operation = (await ask("Operation (+, -, *, /, %, ^, sqrt): ")).trim();
+    const first = parseOperand(
+      await ask(operation === "sqrt" ? "Number: " : "First number: "),
+      operation === "sqrt" ? "Number" : "First number",
+    );
+    const result =
+      operation === "sqrt"
+        ? squareRoot(first)
+        : calculate(
+            operation,
+            first,
+            parseOperand(await ask("Second number: "), "Second number"),
+          );
 
-    console.log(`Result: ${calculate(operation, left, right)}`);
+    console.log(`Result: ${result}`);
   } finally {
     terminal.close();
   }
@@ -73,4 +105,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { calculate };
+module.exports = { calculate, modulo, power, squareRoot };
